@@ -111,11 +111,17 @@ def create_app(test_config=None):
   '''
   @app.route('/questions', methods=['POST'])
   def get_questions():
-        questions = Question.query.get(id)
-        Question.delete()
-        return jsonify({
-          'seccess': True
-        })
+          
+      question = request.json['question']
+      answer = request.json['answer']
+      category = request.json['category']
+      difficulty = request.json['difficulty']
+      new_question = Question(question,answer, category, difficulty)
+
+      Question.insert(new_question)
+      return jsonify({
+        'seccess': True
+      })
 
 
 
@@ -129,6 +135,20 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  @app.route('/questions/search', methods=['POST'])
+  def get_questions():
+        searchTerm = request.json('searchTerm')
+        questions = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
+        formatted_questions = [Question.format() for question in questions]
+        current_category = formatted_questions[0]['category']
+        
+        return jsonify({
+          'seccess': True,
+          'questions': questions,
+          'total_questions': len(questions),
+          'current_category': current_category
+        })
+
 
   '''
   @TODO: 
@@ -138,7 +158,21 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
+  @app.route('/categories/<int:id>/questions', methods=['GET'])
+  def get_questions(id):
+        category = Category.query.get(id)
+        questions = Question.query.filter(Question.category == category).all()
+        formatted_questions = [Question.format() for question in questions]
+        current_category = formatted_questions[0]['category']
+        
+        return jsonify({
+          'seccess': True,
+          'questions': questions,
+          'total_questions': len(questions),
+          'current_category': current_category
+        })
 
+ 
 
   '''
   @TODO: 
@@ -150,7 +184,42 @@ def create_app(test_config=None):
   TEST: In the "Play" tab, after a user selects "All" or a category,
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
+
   '''
+  @app.route('/quizzes', methods=['POST'])
+  def get_questions():
+        quiz_category = request.json['quiz_category']
+        previous_questions = request.json['previous_questions']
+        category = Category.query.filter(Category.type == quiz_category).one_or_none()
+        if category is None:
+            abort(404)
+        else:
+              for previous_question in previous_questions:
+                  questions = Question.query.filter(Question.category == category).all()
+                  # if previous_question['id']
+                  formatted_questions = [Question.format() for question in questions]
+                  current_category = formatted_questions[0]['category']
+                  return jsonify({
+                  'seccess': True,
+                  'questions': questions,
+                  'total_questions': len(questions),
+                  'current_category': current_category
+                  })
+        
+              
+
+        questions = Question.query.filter(Question.category == category).all()
+        formatted_questions = [Question.format() for question in questions]
+        current_category = formatted_questions[0]['category']
+        
+        return jsonify({
+          'seccess': True,
+          'questions': questions,
+          'total_questions': len(questions),
+          'current_category': current_category
+        })
+
+
 
   '''
   @TODO: 
