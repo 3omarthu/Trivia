@@ -35,7 +35,7 @@ def create_app(test_config=None):
           categories = Category.query.all()
           if categories is None:
             abort(404)
-          formatted_category = [Category.format() for category in categories]
+          formatted_category = [Category.format() for Category in categories]
       except:
             abort(500)
 
@@ -54,19 +54,19 @@ def create_app(test_config=None):
         questions = Question.query.all()
         if questions is None:
             abort(404)
-        formatted_questions = [Question.format() for question in questions]
-        current_category = formatted_questions[0]['category']
-        for question in formatted_questions:
-              categories = question['category']
+        formatted_questions = [Question.format() for Question in questions]
+        # current_category = formatted_questions['category']
+        categories = Category.query.all()
+        
       except:
             abort(500)
             
       return jsonify({
           'seccess': True,
-          'questions': questions[start:end],
+          'questions': formatted_questions[start:end],
           'total_questions': len(questions),
-          'current_category': current_category,
-          'categories': categories
+          'current_category': "current_category",
+          'categories': {category.id: category.type for category in categories}
 
       })
 
@@ -74,45 +74,56 @@ def create_app(test_config=None):
   @app.route('/questions/<int:id>', methods=['DELETE'])
   def delete_question(id):
         try:
-            question = Question.query.filter(Question.id == id).one_or_none()
+            question = Question.query.filter_by(id = id).one_or_none()
         except:
             abort(500)
 
         if question is None:
             abort(404)
-        else:
-              try:
-                  Question.delete()
-              except:
-                    abort(500)
+        
+        try:
+            question.delete()
+        except:
+            abort(500)
 
         return jsonify({
-          'seccess': True
+          'seccess': True,
+            'deleted': id
         })
 
 
   @app.route('/questions', methods=['POST'])
   def add_question():
-      body = request.get_json()
-      try:
+        body = request.get_json()
+        try:
 
-            question = body.get('question')
+            body_question = body.get('question')
             answer = body.get('answer')
             category = body.get('category')
             difficulty = body.get('difficulty')
             
-      except:
+        except:
             abort(400)
+
+        if not body_question:
+            abort(400)
+        if not answer:
+            abort(400)
+        if not difficulty:
+            abort(400)
+        if not category:
+            abort(400)  
       
-      try:
-            new_question = Question(question= question, answer= answer, 
-            category= category, difficulty= difficulty)
-            new_question.insert()
-      except:
+        try:
+            question = Question(question=body_question, answer=answer , category=category, difficulty=difficulty)
+            question.insert()
+        except: 
             abort(500)
-      return jsonify({
-        'seccess': True
-      })
+
+        return jsonify({
+        'seccess': True,
+        'created': question.id
+        })
 
 
 
@@ -122,13 +133,20 @@ def create_app(test_config=None):
         body = request.get_json()
         try:
             searchTerm = body.get('searchTerm')
+            if not searchTerm:
+                abort(400)
+        except:
+              abort(400)
+
+        try :
             questions = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
-            formatted_questions = [Question.format() for question in questions]
+            formatted_questions = [Question.format() for Question in questions]
             current_category = formatted_questions[0]['category']
         except:
-              abort(500)
-
+            abort(500)
             
+        if questions is None:
+            abort(404)
         
         return jsonify({
           'seccess': True,
@@ -141,13 +159,12 @@ def create_app(test_config=None):
   @app.route('/categories/<int:id>/questions', methods=['GET'])
   def get_questions_category(id):
 
-      category = Category.query.filter(Category.id == id).one_or_none()
+      category = Category.query.get(id)
       if category is None:
           abort(404)
       try:
-          questions = Question.query.filter(Question.category == category).all()
-          formatted_questions = [Question.format() for question in questions]
-          current_category = formatted_questions[0]['category']
+          questions = Question.query.filter_by(category=str(category.id)).all()
+          formatted_questions = [Question.format() for Question in questions]
       except:
           abort(500)
 
@@ -158,7 +175,7 @@ def create_app(test_config=None):
         'seccess': True,
         'questions': formatted_questions,
         'total_questions': len(formatted_questions),
-        'current_category': current_category
+        'current_category': category.type
       })
 
  
@@ -166,11 +183,19 @@ def create_app(test_config=None):
   @app.route('/quizzes', methods=['POST'])
   def get_quiz():
       body = request.get_json()
+
+      if not ('quiz_category' in body and 'previous_questions' in body):
+            abort(422)
+    
       quiz_category = body.get('quiz_category')
       previous_questions = body.get('previous_questions')
       # category = Category.query.filter_by(Category.type == quiz_category).one_or_none()
+      if(quiz_category['id'] == 0):
+            unfiltered_questions = Question.query.all()
+      else:
+            unfiltered_questions = Question.query.filter_by(category=quiz_category['id'])
 
-      unfiltered_questions = Question.query.filter(Question.category == quiz_category)
+    #   unfiltered_questions = Question.query.filter(Question.category == quiz_category)
 
       if unfiltered_questions.count() == len(previous_questions):
             return jsonify({
@@ -179,7 +204,7 @@ def create_app(test_config=None):
             })
       
       filtered_questions =[]
-      formatted_questions = [Question.format() for question in questions]
+      formatted_questions = [Question.format() for Question in unfiltered_questions]
 
       for question in formatted_questions:
             flag = True
@@ -194,7 +219,7 @@ def create_app(test_config=None):
       
       return jsonify({
       'seccess': True,
-      'questions': question
+      'question': question
       })
         
               
