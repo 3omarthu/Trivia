@@ -94,13 +94,13 @@ def create_app(test_config=None):
 
   @app.route('/questions', methods=['POST'])
   def add_question():
-        body = request.get_json()
+        # body = request.json
         try:
 
-            body_question = body.get('question')
-            answer = body.get('answer')
-            category = body.get('category')
-            difficulty = body.get('difficulty')
+            body_question = request.json['question']
+            answer = request.json['answer']
+            category = request.json['category']
+            difficulty = request.json['difficulty']
             
         except:
             abort(400)
@@ -115,14 +115,14 @@ def create_app(test_config=None):
             abort(400)  
       
         try:
-            question = Question(question=body_question, answer=answer , category=category, difficulty=difficulty)
+            question = Question(question = body_question, answer = answer , category = category, difficulty = difficulty)
             question.insert()
         except: 
             abort(500)
 
         return jsonify({
         'seccess': True,
-        'created': question.id
+        'added ': question.id
         })
 
 

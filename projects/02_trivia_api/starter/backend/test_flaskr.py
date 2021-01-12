@@ -51,11 +51,11 @@ class TriviaTestCase(unittest.TestCase):
         
         
         self.assertEqual(res.status_code, 200)
-        self.question_id = data['created']
+        self.question_id = data['added']
     
     def test_400_question_post(self):
         """Test the POST questions endpoint with wrong object"""
-        res = self.client().post('/questions', json={"question":"","answer": "true",
+        res = self.client().post('/questions', json={"question":"","answer": "",
         "difficulty" : "5","category": "scince"})
 
         self.assertEqual(res.status_code, 400)
@@ -63,7 +63,7 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_question_delete(self):
         """Test question returning """
-        id = 5 
+        id = 2 
         res = self.client().delete('/questions/'+str(id))
         data = json.loads(res.data)
         
@@ -72,7 +72,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_404_question_delete(self):
         """Test 404 in deleting questions endpoint"""
-        res = self.client().delete('/questions/25')
+        res = self.client().delete('/questions/5')
         
         self.assertEqual(res.status_code, 404)
     
