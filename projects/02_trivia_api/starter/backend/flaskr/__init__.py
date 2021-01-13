@@ -14,9 +14,7 @@ def create_app(test_config=None):
   setup_db(app)
   CORS(app)
   
-  '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-  '''
+
   cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
   '''
@@ -24,8 +22,10 @@ def create_app(test_config=None):
   '''
   @app.after_request
   def after_request(response):
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers',
+         'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Methods',
+         'GET, POST, PATCH, DELETE, OPTIONS')
         return response
 
 
@@ -115,7 +115,8 @@ def create_app(test_config=None):
             abort(400)  
       
         try:
-            question = Question(question = body_question, answer = answer , category = category, difficulty = difficulty)
+            question = Question(question = body_question, answer = answer , 
+            category = category, difficulty = difficulty)
             question.insert()
         except: 
             abort(500)
@@ -139,9 +140,9 @@ def create_app(test_config=None):
               abort(400)
 
         try :
-            questions = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
-            formatted_questions = [Question.format() for Question in questions]
-            current_category = formatted_questions[0]['category']
+         questions = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
+         formatted_questions = [Question.format() for Question in questions]
+         current_category = formatted_questions[0]['category']
         except:
             abort(500)
             
@@ -182,42 +183,41 @@ def create_app(test_config=None):
 
   @app.route('/quizzes', methods=['POST'])
   def get_quiz():
-      body = request.get_json()
+    body = request.get_json()
 
-      if not ('quiz_category' in body and 'previous_questions' in body):
-            abort(422)
+    if not ('quiz_category' in body and 'previous_questions' in body):
+        abort(422)
     
-      quiz_category = body.get('quiz_category')
-      previous_questions = body.get('previous_questions')
-      # category = Category.query.filter_by(Category.type == quiz_category).one_or_none()
-      if(quiz_category['id'] == 0):
-            unfiltered_questions = Question.query.all()
-      else:
-            unfiltered_questions = Question.query.filter_by(category=quiz_category['id'])
+    quiz_category = body.get('quiz_category')
+    previous_questions = body.get('previous_questions')
+      
+    if(quiz_category['id'] == 0):
+     unfiltered_questions = Question.query.all()
+    else:
+     unfiltered_questions = Question.query.filter_by(category=quiz_category['id'])
 
-    #   unfiltered_questions = Question.query.filter(Question.category == quiz_category)
 
-      if unfiltered_questions.count() == len(previous_questions):
+    if unfiltered_questions.count() == len(previous_questions):
             return jsonify({
                 'success': True,
                 'question': ""
             })
       
-      filtered_questions =[]
-      formatted_questions = [Question.format() for Question in unfiltered_questions]
+    filtered_questions =[]
+    formatted_questions = [Question.format() for Question in unfiltered_questions]
 
-      for question in formatted_questions:
-            flag = True
-            for previous_question in previous_questions:
-                  if question['id'] == previous_question:
-                    flag = False
-                    break
-            if flag:
-                filtered_questions.append(question)
+    for question in formatted_questions:
+        flag = True
+        for previous_question in previous_questions:
+            if question['id'] == previous_question:
+                flag = False
+                break
+        if flag:
+            filtered_questions.append(question)
 
-      question = random.choice(filtered_questions)
+    question = random.choice(filtered_questions)
       
-      return jsonify({
+    return jsonify({
       'seccess': True,
       'question': question
       })
