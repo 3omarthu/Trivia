@@ -9,7 +9,7 @@ from models import setup_db, Question, Category
 QUESTIONS_PER_PAGE = 10
 
 def create_app(test_config=None):
-  # create and configure the app
+  
   app = Flask(__name__)
   setup_db(app)
   CORS(app)
@@ -18,7 +18,7 @@ def create_app(test_config=None):
   cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
   '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
+  @Done: Use the after_request decorator to set Access-Control-Allow
   '''
   @app.after_request
   def after_request(response):
@@ -55,7 +55,7 @@ def create_app(test_config=None):
         if questions is None:
             abort(404)
         formatted_questions = [Question.format() for Question in questions]
-        # current_category = formatted_questions['category']
+        
         categories = Category.query.all()
         
       except:
@@ -94,7 +94,7 @@ def create_app(test_config=None):
 
   @app.route('/questions', methods=['POST'])
   def add_question():
-        # body = request.json
+        
         try:
 
             body_question = request.json['question']
