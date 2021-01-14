@@ -72,7 +72,7 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_question_delete(self):
         """Test question returning """
-        id = 1 
+        id = 12 
         res = self.client().delete('/questions/'+str(id))
         data = json.loads(res.data)
         
@@ -81,7 +81,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_404_question_delete(self):
         """Test 404 in deleting questions endpoint"""
-        res = self.client().delete('/questions/5')
+        res = self.client().delete('/questions/500')
         
         self.assertEqual(res.status_code, 404)
     
@@ -90,7 +90,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_question_search(self):
         """Test question search endpoint"""
-        res = self.client().post('/questions/search', json={"searchTerm": "fantasy"})
+        res = self.client().post('/questions/search', json={"searchTerm": "soccer"})
         data = json.loads(res.data)
         
         self.assertEqual(res.status_code, 200)
