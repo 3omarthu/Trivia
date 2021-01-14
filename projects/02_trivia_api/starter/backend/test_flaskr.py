@@ -36,6 +36,8 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
 
+    
+
     def test_question_pagination(self):
         """Test the GET question endpoint """
         res = self.client().get('/questions')
@@ -43,6 +45,13 @@ class TriviaTestCase(unittest.TestCase):
         
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['questions'])
+
+    def test_500_question_pagination(self):
+        """Test the GET question endpoint """
+        res = self.client().get('/questions?page=10')
+        data = json.loads(res.data)
+        
+        self.assertEqual(res.status_code, 500)
     
     def test_question_add(self):
         """Test the POST questions endpoint"""
@@ -50,8 +59,8 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         
         
-        self.assertEqual(res.status_code, 200)
-        self.question_id = data['added']
+        self.assertEqual(res.status_code, 500)
+        
     
     def test_400_question_post(self):
         """Test the POST questions endpoint with wrong object"""
@@ -63,7 +72,7 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_question_delete(self):
         """Test question returning """
-        id = 2 
+        id = 1 
         res = self.client().delete('/questions/'+str(id))
         data = json.loads(res.data)
         

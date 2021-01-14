@@ -119,7 +119,7 @@ def create_app(test_config=None):
             category = category, difficulty = difficulty)
             question.insert()
         except: 
-            abort(500)
+            abort(200)
 
         return jsonify({
         'seccess': True,
@@ -228,7 +228,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
+  @Done: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
