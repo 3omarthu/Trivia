@@ -51,7 +51,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/questions?page=10')
         data = json.loads(res.data)
         
-        self.assertEqual(res.status_code, 500)
+        self.assertEqual(res.status_code, 200)
     
     def test_question_add(self):
         """Test the POST questions endpoint"""
