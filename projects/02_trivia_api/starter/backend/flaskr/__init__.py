@@ -31,14 +31,14 @@ def create_app(test_config=None):
             categories = Category.query.all()
             if categories is None:
                 abort(404)
-            formatted_category = [Category.format() for Category in categories]
+
+            return jsonify({
+                'seccess': True,
+                'categories': {category.id: category.type for
+                               category in categories}
+                })
         except:
             abort(500)
-
-        return jsonify({
-            'seccess': True,
-            'categories': formatted_category
-            })
 
     @app.route('/questions', methods=['GET'])
     def get_questions():
@@ -51,18 +51,17 @@ def create_app(test_config=None):
                 abort(404)
             formatted_questions = [Question.format() for Question in questions]
             categories = Category.query.all()
+            return jsonify({
+                'seccess': True,
+                'questions': formatted_questions[start:end],
+                'total_questions': len(questions),
+                'current_category': "current_category",
+                'categories': {category.id: category.type
+                               for category in categories}
+                })
 
         except:
                 abort(500)
-
-        return jsonify({
-            'seccess': True,
-            'questions': formatted_questions[start:end],
-            'total_questions': len(questions),
-            'current_category': "current_category",
-            'categories': {category.id: category.type
-                           for category in categories}
-            })
 
     @app.route('/questions/<int:id>', methods=['DELETE'])
     def delete_question(id):
@@ -76,21 +75,21 @@ def create_app(test_config=None):
 
         try:
             question.delete()
+            return jsonify({
+                'seccess': True,
+                'deleted': id
+                })
         except:
             abort(500)
-
-        return jsonify({
-            'seccess': True,
-            'deleted': id
-            })
 
     @app.route('/questions', methods=['POST'])
     def add_question():
         try:
-            body_question = request.json['question']
-            answer = request.json['answer']
-            category = request.json['category']
-            difficulty = request.json['difficulty']
+            body = request.get_json()
+            body_question = body.get('question')
+            answer = body.get('answer')
+            category = body.get('category')
+            difficulty = body.get('difficulty')
 
         except:
             abort(400)
@@ -108,13 +107,12 @@ def create_app(test_config=None):
             question = Question(question=body_question, answer=answer,
                                 category=category, difficulty=difficulty)
             question.insert()
+            return jsonify({
+                'seccess': True,
+                'created ': question.id
+                })
         except:
-            abort(200)
-
-        return jsonify({
-            'seccess': True,
-            'added ': question.id
-            })
+            abort(500)
 
     @app.route('/questions/search', methods=['POST'])
     def get_searched_question():
@@ -131,18 +129,16 @@ def create_app(test_config=None):
                                               .ilike(f'%{searchTerm}%')).all()
             formatted_questions = [Question.format() for Question in questions]
             current_category = formatted_questions[0]['category']
+            if questions is None:
+                abort(404)
+            return jsonify({
+                'seccess': True,
+                'questions': formatted_questions,
+                'total_questions': len(formatted_questions),
+                'current_category': current_category
+                })
         except:
             abort(500)
-
-        if questions is None:
-            abort(404)
-
-        return jsonify({
-            'seccess': True,
-            'questions': formatted_questions,
-            'total_questions': len(formatted_questions),
-            'current_category': current_category
-        })
 
     @app.route('/categories/<int:id>/questions', methods=['GET'])
     def get_questions_category(id):
@@ -154,18 +150,17 @@ def create_app(test_config=None):
             questions = Question.query.filter_by(category=str
                                                  (category.id)).all()
             formatted_questions = [Question.format() for Question in questions]
+            if questions is None:
+                abort(404)
+
+            return jsonify({
+                'seccess': True,
+                'questions': formatted_questions,
+                'total_questions': len(formatted_questions),
+                'current_category': category.type
+                })
         except:
             abort(500)
-
-        if questions is None:
-            abort(404)
-
-        return jsonify({
-            'seccess': True,
-            'questions': formatted_questions,
-            'total_questions': len(formatted_questions),
-            'current_category': category.type
-            })
 
     @app.route('/quizzes', methods=['POST'])
     def get_quiz():
@@ -177,21 +172,14 @@ def create_app(test_config=None):
         quiz_category = body.get('quiz_category')
         previous_questions = body.get('previous_questions')
 
-        if(quiz_category['id'] == 0):
-            unfiltered_questions = Question.query.all()
-        else:
-            unfiltered_questions = Question.query.filter_by(category=quiz_category['id'])
+        unfiltered_questions = Question.query.filter_by(category=quiz_category['id'])
 
         if unfiltered_questions.count() == len(previous_questions):
-            return jsonify({
-                'success': True,
-                'question': ""
-            })
+            unfiltered_questions = Question.query.all()
 
         filtered_questions = []
         formatted_questions = [Question.format() for
                                Question in unfiltered_questions]
-
         for question in formatted_questions:
             flag = True
             for previous_question in previous_questions:

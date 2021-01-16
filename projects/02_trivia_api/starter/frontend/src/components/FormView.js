@@ -17,7 +17,7 @@ class FormView extends Component {
 
   componentDidMount(){
     $.ajax({
-      url: `/categories`, //TODO: update request URL done
+      url: `/categories`, 
       type: "GET",
       success: (result) => {
         this.setState({ categories: result.categories })

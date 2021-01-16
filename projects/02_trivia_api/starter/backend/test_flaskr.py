@@ -94,7 +94,7 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(data['total_questions'], 1)
+        self.assertEqual(data['total_questions'], 2)
 
     def test_400_question_search(self):
         """Test 400 question search endpoint"""
